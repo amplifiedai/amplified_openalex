@@ -1,0 +1,20 @@
+defmodule Amplified.OpenAlex.InstitutionTypesListResponse do
+  @moduledoc """
+  Provides struct and type for a InstitutionTypesListResponse
+  """
+
+  @type t :: %__MODULE__{
+          meta: Amplified.OpenAlex.Meta.t() | nil,
+          results: [Amplified.OpenAlex.InstitutionType.t()] | nil
+        }
+
+  defstruct [:meta, :results]
+
+  @doc false
+  @spec __fields__(atom) :: keyword
+  def __fields__(type \\ :t)
+
+  def __fields__(:t) do
+    [meta: {Amplified.OpenAlex.Meta, :t}, results: [{Amplified.OpenAlex.InstitutionType, :t}]]
+  end
+end

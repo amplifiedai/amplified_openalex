@@ -1,0 +1,11 @@
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+amplified_openalex-*.tar
+/tmp/
+/.claude/
+/.elixir_ls/
