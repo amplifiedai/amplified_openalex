@@ -48,6 +48,7 @@ defmodule Amplified.OpenAlex.Works do
     * `sort`: Sort by: `cited_by_count`, `publication_date`, `relevance_score` (with search). Prefix with `-` for descending. See [all Work fields](/api-reference/works#available-filter-sort-and-group_by-fields).
     * `group_by`: Group by: `publication_year`, `type`, `open_access.is_oa`, `authorships.institutions.country_code` See [all Work fields](/api-reference/works#available-filter-sort-and-group_by-fields).
     * `search`: Full-text search across titles, abstracts, and other text fields. Example: `search=machine learning`
+    * `semantic_search`: Semantic search using GTE-Large embeddings. Finds conceptually related works even when terminology differs. Max 50 results per page. Example: `semantic_search=flexible temperature sensor for wearable devices`
     * `per_page`: Number of results per page (1-100, default 25)
     * `page`: Page number for pagination. Use cursor for deep pagination beyond 10,000 results.
     * `cursor`: Cursor for deep pagination. Use `cursor=*` to start, then use the `next_cursor` from the response.
@@ -61,8 +62,11 @@ defmodule Amplified.OpenAlex.Works do
   def list_works(opts \\ []) do
     client = opts[:client] || @default_client
 
+    {semantic_search, opts} = Keyword.pop(opts, :semantic_search)
+
     query =
-      Keyword.take(opts, [
+      opts
+      |> Keyword.take([
         :api_key,
         :cursor,
         :filter,
@@ -74,6 +78,7 @@ defmodule Amplified.OpenAlex.Works do
         :select,
         :sort
       ])
+      |> maybe_add_semantic_search(semantic_search)
 
     client.request(%{
       args: [],
@@ -90,4 +95,7 @@ defmodule Amplified.OpenAlex.Works do
       opts: opts
     })
   end
+
+  defp maybe_add_semantic_search(query, nil), do: query
+  defp maybe_add_semantic_search(query, text), do: [{"search.semantic", text} | query]
 end
