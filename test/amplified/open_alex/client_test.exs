@@ -66,6 +66,53 @@ defmodule Amplified.OpenAlex.ClientTest do
     end
   end
 
+  describe "decode_struct with non-map data" do
+    test "returns struct with message when body is a string" do
+      fields = Error.__fields__(:t)
+
+      result = decode_struct(fields, Error, "<html>Not Found</html>")
+
+      assert %Error{} = result
+      assert result.message == "<html>Not Found</html>"
+      assert result.error == nil
+    end
+
+    test "returns struct with message when body is an integer" do
+      fields = Error.__fields__(:t)
+
+      result = decode_struct(fields, Error, 404)
+
+      assert %Error{} = result
+      assert result.message == "404"
+    end
+
+    test "still decodes map bodies normally" do
+      fields = Error.__fields__(:t)
+
+      result = decode_struct(fields, Error, %{"error" => "not_found", "message" => "Work not found"})
+
+      assert %Error{} = result
+      assert result.error == "not_found"
+      assert result.message == "Work not found"
+    end
+  end
+
+  # Expose the private decode_struct for testing
+  defp decode_struct(_fields, module, data) when not is_map(data),
+    do: struct(module, message: to_string(data))
+
+  defp decode_struct(fields, module, data) when is_map(data) do
+    Enum.reduce(fields, %{}, fn {field, type}, acc ->
+      key = to_string(field)
+
+      case Map.fetch(data, key) do
+        {:ok, value} -> Map.put(acc, field, decode_value(value, type))
+        :error -> acc
+      end
+    end)
+    |> then(&struct(module, &1))
+  end
+
   # Expose the private decode_value for testing
   defp decode_value(nil, _type), do: nil
   defp decode_value(value, :string), do: value

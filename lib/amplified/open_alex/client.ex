@@ -77,6 +77,9 @@ defmodule Amplified.OpenAlex.Client do
   defp decode_body(body, :map), do: body
   defp decode_body(body, _type), do: body
 
+  defp decode_struct(_fields, module, data) when not is_map(data),
+    do: struct(module, message: to_string(data))
+
   defp decode_struct(fields, module, data) when is_map(data) do
     fields
     |> Enum.reduce(%{}, fn {field, type}, acc ->
